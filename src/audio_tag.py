@@ -8,9 +8,9 @@ import argparse
 import logging
 import os
 import pathlib
+import sys
 
 import mutagen
-
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ def clear_and_set_tags(audio, artist, title):
         audio.clear_pictures()
         audio.save(deleteid3=True)
     else:
-        raise Exception(f"Invalid audio file: {filepath}")
+        raise Exception("Invalid audio file")
 
 
 def retag(filepath):
@@ -46,8 +46,8 @@ def retag(filepath):
     try:
         artist, title = get_artist_and_title_from_filename(filepath)
         clear_and_set_tags(audio, artist, title)
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.error(f"Invalid audio file: {filepath}")
         return None, None
     return artist, title
 
@@ -65,8 +65,11 @@ def run(path):
     logger.info(f"\nProcessed {count} audio files")
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dir", default=os.getcwd(), help="start directory")
     args = parser.parse_args()
-    run(args.dir)
+    try:
+        run(args.dir)
+    except KeyboardInterrupt:
+        sys.exit("\nexiting program ...")
