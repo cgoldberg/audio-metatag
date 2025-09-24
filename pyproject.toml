@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "audio-tag"
+version = "0.1.0dev0"
+description = "Clean metadata and tag MP3 or FLAC audio files"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "Corey Goldberg"}]
+maintainers = [{name = "Corey Goldberg"}]
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["audio", "cleaner", "cli", "flac", "metadata", "mp3", "music", "tags", "tagging"]
+classifiers = [
+    "Environment :: Console",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "mutagen==1.47.0",
+]
+
+[project.scripts]
+audio_tag = "audio_tag:main"
+
+[project.urls]
+homepage = "https://github.com/cgoldberg/audio-tag"
+source = "https://github.com/cgoldberg/audio-tag"
+download = "https://pypi.org/project/audio-tag"
+
+[dependency-groups]
+dev = [
+    "tox",
+]
+lint = [
+    "black",
+    "ruff",
+]
+validate = [
+    "packaging",
+    "validate-pyproject",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.black]
+line-length = 88
+target-version = [
+    "py39", "py310", "py311", "py312", "py313"
+]
+
+[tool.ruff]
+line-length = 88
+respect-gitignore = true
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [
+    "D", "E", "F", "I", "RUF", "TID", "W"
+]
+extend-ignore = [
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D203",
+    "D205", "D211", "D213", "D400", "D401", "RUF012"
+]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = 88
