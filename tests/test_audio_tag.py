@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 from pathlib import Path
 
 import mutagen
@@ -10,18 +11,16 @@ import audio_tag
 SAMPLES_DIR = Path("tests", "sample_files")
 
 
-# @pytest.fixture
-# def clean_metadata():
-#    for entry in os.scandir(SAMPLES_DIR):
-#        if entry.is_file():
-#            cleared_audio = audio_tag.clear_tags()
-#            tagged
-#            print()
-#            print(entry.name)
+@pytest.fixture
+def clean_files(tmp_path):
+    for entry in SAMPLES_DIR.iterdir():
+        if entry.is_file():
+            shutil.copyfile(entry, tmp_path)
+    return tmp_path
 
 
 def get_sample_audio(filename):
-    filepath = os.path.abspath(Path(SAMPLES_DIR, filename))
+    filepath = os.path.abspath(SAMPLES_DIR / filename)
     audio = mutagen.File(filepath, easy=True)
     return audio
 
@@ -46,5 +45,7 @@ def test_get_artist_and_title_from_filename_with_invalid_filename():
         audio_tag.get_artist_and_title_from_filename(filename)
 
 
-# def test_clear_tags_mp3(clean_metadata):
-#    audio = audio_tag.clear_tags(audio_tag.get_sample_audio("Artist - Title.mp3"))
+#def test_clear_tags_mp3(clean_files):
+#    sample_audio = get_sample_audio("Artist - Title.mp3")
+#    audio = audio_tag.clear_tags(sample_audio)
+#    audio_tag.clear(tags)
