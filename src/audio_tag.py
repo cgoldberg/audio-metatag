@@ -7,8 +7,8 @@
 import argparse
 import logging
 import os
-import pathlib
 import sys
+from pathlib import Path
 
 import mutagen
 
@@ -21,7 +21,7 @@ FILE_EXTENSIONS = tuple(f".{x.lower()}" for x in SUPPORTED_FORMATS)
 
 
 def get_artist_and_title_from_filename(filepath):
-    root_filename = pathlib.Path(filepath).stem
+    root_filename = Path(filepath).stem
     if " - " not in root_filename:
         raise Exception("invalid filename (no delimiter found)")
     artist, title = root_filename.split(" - ", 1)
@@ -77,7 +77,7 @@ def retag(filepath, clean_only=False):
 
 def process_file(filepath, clean_only=False):
     processed = False
-    if not os.path.exists(filepath):
+    if not Path(filepath).exists():
         logger.error(f"File:\n  {filepath}\nError:\n  can't find file\n")
     if filepath.lower().endswith(FILE_EXTENSIONS):
         artist, title = retag(filepath, clean_only)
@@ -99,14 +99,14 @@ def run(path, filenames, clean_only=False):
     if filenames:
         for fn in filenames:
             total_count += 1
-            filepath = os.path.abspath(os.path.join(path, fn))
+            filepath = os.path.abspath(Path(path, fn))
             if process_file(filepath, clean_only):
                 cleaned_count += 1
     else:
         for root, dirs, files in os.walk(path):
             for fn in files:
                 total_count += 1
-                filepath = os.path.abspath(os.path.join(root, fn))
+                filepath = os.path.abspath(Path(root, fn))
                 if process_file(filepath, clean_only):
                     cleaned_count += 1
     f = "files"
@@ -119,13 +119,13 @@ def run(path, filenames, clean_only=False):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("filename", nargs="*", help="file to process (multiple allowed)")
-    parser.add_argument("-d", "--dir", default=os.getcwd(), help="start directory")
+    parser.add_argument("-d", "--dir", default=Path.cwd(), help="start directory")
     parser.add_argument("-c", "--clean", action="store_true", help="only clean metadata (don't write tags)")
     args = parser.parse_args()
     filenames = args.filename
     path = args.dir
     clean_only = args.clean
-    if not os.path.exists(path):
+    if not Path(path).exists():
         sys.exit(f"Error: can't find '{path}'")
     try:
         run(path, filenames, clean_only)
