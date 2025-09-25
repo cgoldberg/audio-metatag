@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 SUPPORTED_FORMATS = ("FLAC", "MP3", "OGG")
-# SUPPORTED_FORMATS = ("FLAC", "MP3")
 FILE_EXTENSIONS = tuple(f".{x.lower()}" for x in SUPPORTED_FORMATS)
 
 
