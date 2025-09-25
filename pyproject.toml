@@ -61,13 +61,13 @@ package-dir = {"" = "src"}
 addopts = "-vv" # extra verbose
 
 [tool.black]
-line-length = 88
+line-length = 120
 target-version = [
     "py39", "py310", "py311", "py312", "py313"
 ]
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 respect-gitignore = true
 target-version = "py39"
 
@@ -83,4 +83,4 @@ fixable = ["ALL"]
 
 [tool.ruff.format]
 docstring-code-format = true
-docstring-code-line-length = 88
+docstring-code-line-length = 120

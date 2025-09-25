@@ -119,9 +119,7 @@ def run(path, filenames, clean_only=False):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "filename", nargs="*", help="file to process (multiple allowed)"
-    )
+    parser.add_argument("filename", nargs="*", help="file to process (multiple allowed)")
     parser.add_argument("-d", "--dir", default=os.getcwd(), help="start directory")
     parser.add_argument("-c", "--clean", action="store_true", help="only clean metadata (don't write tags)")
     args = parser.parse_args()
