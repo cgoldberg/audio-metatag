@@ -47,14 +47,15 @@ pip install audio-tag
 ## CLI Options:
 
 ```
-usage: audio_tag [-h] [--dir DIR] [filename ...]
+usage: audio_tag [-h] [-d DIR] [-c] [filename ...]
 
 positional arguments:
-  filename    file to process (multiple allowed)
+  filename       file to process (multiple allowed)
 
 options:
-  -h, --help  show this help message and exit
-  --dir DIR   start directory
+  -h, --help     show this help message and exit
+  -d, --dir DIR  start directory
+  -c, --clean    only clean metadata (don't write tags)
 ```
 
 ## Usage Examples:
