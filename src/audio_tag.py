@@ -60,6 +60,8 @@ def retag(filepath):
 
 def process_file(filepath):
     processed = False
+    if not os.path.exists(filepath):
+        logger.error(f"File:\n  {filepath}\nError:\n  can't find file\n")
     if filepath.lower().endswith(FILE_EXTENSIONS):
         artist, title = retag(filepath)
         if None not in (artist, title):
@@ -72,25 +74,25 @@ def process_file(filepath):
 
 def run(path, filenames):
     print()
-    processed_count = total_count = 0
+    cleaned_count = total_count = 0
     if filenames:
         for fn in filenames:
             total_count += 1
             filepath = os.path.abspath(os.path.join(path, fn))
             if process_file(filepath):
-                processed_count += 1
+                cleaned_count += 1
     else:
         for root, dirs, files in os.walk(path):
             for fn in files:
                 total_count += 1
                 filepath = os.path.abspath(os.path.join(root, fn))
                 if process_file(filepath):
-                    processed_count += 1
+                    cleaned_count += 1
     f = "files"
-    if processed_count == 1:
+    if cleaned_count == 1:
         f = "file"
-    logger.info(f"{'-' * 80}\nProcessed {processed_count} audio {f}")
-    return processed_count, total_count
+    logger.info(f"{'-' * 40}\nCleaned {cleaned_count} audio {f}")
+    return cleaned_count, total_count
 
 
 def main():
@@ -101,7 +103,10 @@ def main():
     parser.add_argument("--dir", default=os.getcwd(), help="start directory")
     args = parser.parse_args()
     filenames = args.filename
+    path = args.dir
+    if not os.path.exists(path):
+        sys.exit(f"Error: can't find '{path}'")
     try:
-        run(args.dir, filenames)
+        run(path, filenames)
     except KeyboardInterrupt:
-        sys.exit("\nexiting program ...")
+        sys.exit("\nExiting program ...")
