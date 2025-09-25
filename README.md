@@ -1,6 +1,6 @@
 # audio-tag
 
-## Clean metadata and tag MP3 or FLAC audio files
+## Clean metadata and tag audio files (MP3, FLAC, Ogg Vorbis)
 
 ---
 
@@ -13,24 +13,24 @@
 
 ## About:
 
-`audio_tag` is a Python CLI program that cleans metadata and tags MP3 or FLAC
-audio files. It can be used on individual files or a library of files.
+`audio_tag` is a Python CLI program that cleans metadata and adds artist/title
+tags to MP3, FLAC, or Ogg vorbis audio files. It can be used on individual
+files or a library of files.
 
 - In order to process a file, it **must** be named in a specific format:
-  - `Artist - Title.mp3` or `Artist - Title.flac`
+  - `Artist - Title.mp3`, `Artist - Title.flac`, `Artist - Title.ogg`
   - File names must contain a delimiter (` - `) between `Artist` and `Title`,
-    and end with a valid extension: `.mp3` or `.flac` (case-insensitive)
+    and end with a valid extension: `.mp3`, `.flac`, `.ogg` (case-insensitive)
 - It will skip any files that are not named according to the format specified above
-- It will skip any files that are not valid MP3/Flac files
-- If a filename is given as an option, it will only process that file
+- If filenames are given as command-line options, it will only process those files
 - If no filename is specified, it will process all files (recursively) in the current directory
 - A different directory can be specified using the `--dir` option
 
 **Warning**: Edits are done in-place. Backup your files first if you want a copy of the originals.
 
 - Existing metadata (tags) and pictures are deleted
-- Metadata tags for Artist and Title are added (id3v2 or flac tags)
-- New tags are taken from the file name
+- Artist and Title tag data is taken from the filename
+- Metadata tags are saved to the file (id3v2, flac, ogg)
 
 ## Requirements:
 
@@ -47,7 +47,14 @@ pip install audio-tag
 ## CLI Options:
 
 ```
-coming soon
+usage: audio_tag [-h] [--dir DIR] [filename ...]
+
+positional arguments:
+  filename    file to process (multiple allowed)
+
+options:
+  -h, --help  show this help message and exit
+  --dir DIR   start directory
 ```
 
 ## Usage Examples:

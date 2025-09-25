@@ -5,14 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "audio-tag"
 version = "0.1.0dev0"
-description = "Clean metadata and tag MP3 or FLAC audio files"
+description = "Clean metadata and tag audio files (MP3, FLAC, Ogg Vorbis)"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{name = "Corey Goldberg"}]
 maintainers = [{name = "Corey Goldberg"}]
 readme = "README.md"
 requires-python = ">=3.9"
-keywords = ["audio", "cleaner", "cli", "flac", "metadata", "mp3", "music", "tags", "tagging"]
+keywords = [
+    "audio", "cleaner", "cli", "flac", "metadata", "mp3", "music",
+    "ogg-vorbis", "tags", "tagging"
+]
 classifiers = [
     "Environment :: Console",
     "Programming Language :: Python",
