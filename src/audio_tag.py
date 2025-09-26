@@ -3,10 +3,8 @@
 # Copyright (c) 2015-2025 Corey Goldberg
 # MIT License
 
-
 import argparse
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -20,8 +18,8 @@ SUPPORTED_FORMATS = ("FLAC", "MP3", "OGG")
 FILE_EXTENSIONS = tuple(f".{x.lower()}" for x in SUPPORTED_FORMATS)
 
 
-def get_artist_and_title_from_filename(filepath):
-    root_filename = Path(filepath).stem
+def get_artist_and_title(filepath):
+    root_filename = filepath.stem
     if " - " not in root_filename:
         raise Exception("invalid filename (no delimiter found)")
     artist, title = root_filename.split(" - ", 1)
@@ -58,7 +56,7 @@ def retag(filepath, clean_only=False):
         if clean_only:
             artist, title = False, False
         else:
-            artist, title = get_artist_and_title_from_filename(filepath)
+            artist, title = get_artist_and_title(filepath)
         audio = mutagen.File(filepath, easy=True)
         if audio is None:
             logger.error(f"File:\n  {filepath}\nError:\n  unknown error\n")
@@ -77,9 +75,9 @@ def retag(filepath, clean_only=False):
 
 def process_file(filepath, clean_only=False):
     processed = False
-    if not Path(filepath).exists():
+    if not filepath.exists():
         logger.error(f"File:\n  {filepath}\nError:\n  can't find file\n")
-    if filepath.lower().endswith(FILE_EXTENSIONS):
+    if filepath.name.lower().endswith(FILE_EXTENSIONS):
         artist, title = retag(filepath, clean_only)
         if clean_only:
             if artist is not None:
@@ -94,40 +92,41 @@ def process_file(filepath, clean_only=False):
 
 
 def run(path, filenames, clean_only=False):
-    print()
-    cleaned_count = total_count = 0
+    processed_count = total_count = 0
     if filenames:
-        for fn in filenames:
+        for f in filenames:
             total_count += 1
-            filepath = os.path.abspath(Path(path, fn))
+            filepath = Path.absolute(path / f)
             if process_file(filepath, clean_only):
-                cleaned_count += 1
+                processed_count += 1
     else:
-        for root, dirs, files in os.walk(path):
-            for fn in files:
+        for root, dirs, files in path.walk():
+            for f in sorted(files):
                 total_count += 1
-                filepath = os.path.abspath(Path(root, fn))
+                filepath = Path.absolute(root / f)
                 if process_file(filepath, clean_only):
-                    cleaned_count += 1
-    f = "files"
-    if cleaned_count == 1:
-        f = "file"
-    logger.info(f"{'-' * 40}\nCleaned {cleaned_count} audio {f}")
-    return cleaned_count, total_count
+                    processed_count += 1
+    action_msg = "Cleaned" if clean_only else "Cleaned and tagged"
+    label_msg = "file" if processed_count == 1 else "files"
+    status_msg = f"{action_msg} {processed_count} audio {label_msg}"
+    return status_msg
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("filename", nargs="*", help="file to process (multiple allowed)")
-    parser.add_argument("-d", "--dir", default=Path.cwd(), help="start directory")
+    parser.add_argument("-d", "--dir", default=Path.cwd().absolute(), help="start directory")
     parser.add_argument("-c", "--clean", action="store_true", help="only clean metadata (don't write tags)")
     args = parser.parse_args()
-    filenames = args.filename
-    path = args.dir
+    path = Path(args.dir)
+    filenames = sorted(Path(f) for f in args.filename)
     clean_only = args.clean
-    if not Path(path).exists():
+    if not path.exists():
         sys.exit(f"Error: can't find '{path}'")
     try:
-        run(path, filenames, clean_only)
+        logger.info("")
+        status_msg = run(path, filenames, clean_only)
+        logger.info("-" * 40)
+        logger.info(status_msg)
     except KeyboardInterrupt:
         sys.exit("\nExiting program ...")
