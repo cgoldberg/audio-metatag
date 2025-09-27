@@ -1,3 +1,4 @@
+import logging
 import re
 import shutil
 from pathlib import Path
@@ -11,6 +12,7 @@ FILE_EXTENSIONS = ["mp3", "flac", "ogg"]
 VALID_FILE_STEM = "Artist - Title"
 ORIGINAL_ARTIST_TAG = "Test Artist"
 ORIGINAL_TITLE_TAG = "Test Title"
+LOG_LEVEL = logging.INFO
 
 
 def copy_file(filename, path):
@@ -106,3 +108,58 @@ def test_retag(file_extension, tmp_path):
     assert tagged_title == title
     audio = mutagen.File(filepath, easy=True)
     assert verify_tags_set(audio, artist, title)
+
+
+def test_retag_invalid_file(tmp_path):
+    filename = "Invalid Filename.mp3"
+    copy_file(filename, tmp_path)
+    filepath = tmp_path / filename
+    artist, title = audio_tag.retag(filepath)
+    assert artist is None
+    assert title is None
+
+
+@pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
+def test_process_clean(file_extension, tmp_path, caplog):
+    filename = f"{VALID_FILE_STEM}.{file_extension}"
+    copy_file(filename, tmp_path)
+    filepath = tmp_path / filename
+    caplog.set_level(LOG_LEVEL)
+    processed = audio_tag.process_file(filepath, clean_only=True)
+    assert processed
+    for record in caplog.records:
+        assert record.levelname == "INFO"
+    matches = ("File:", filepath.name, "Tags:", "no tags saved")
+    assert all(x in caplog.text for x in matches)
+    audio = mutagen.File(filepath, easy=True)
+    assert verify_tags_cleared(audio)
+
+
+@pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
+def test_process(file_extension, tmp_path, caplog):
+    artist = "Artist"
+    title = "Title"
+    filename = f"{VALID_FILE_STEM}.{file_extension}"
+    copy_file(filename, tmp_path)
+    filepath = tmp_path / filename
+    caplog.set_level(LOG_LEVEL)
+    processed = audio_tag.process_file(filepath)
+    assert processed
+    for record in caplog.records:
+        assert record.levelname == "INFO"
+    matches = ("File:", filepath.name, "Tags:", f"{artist} - {title}.{file_extension}")
+    assert all(x in caplog.text for x in matches)
+    audio = mutagen.File(filepath, easy=True)
+    assert verify_tags_set(audio, artist, title)
+
+
+def test_process_invalid_file(tmp_path, caplog):
+    filename = "Invalid Filename.mp3"
+    copy_file(filename, tmp_path)
+    filepath = tmp_path / filename
+    caplog.set_level(LOG_LEVEL)
+    processed = audio_tag.process_file(filepath)
+    assert not processed
+    for record in caplog.records:
+        assert record.levelname == "ERROR"
+    assert "invalid filename (no delimiter found)" in caplog.text
