@@ -136,7 +136,7 @@ def test_process(file_extension, tmp_path, caplog):
     assert processed
     for record in caplog.records:
         assert record.levelname == "INFO"
-    assert f"File:\n  {filepath}\nTags:\n  artist: {artist}\n  title: {title}\n" in caplog.text
+    assert f"\u27a4 File: {filepath}\n  \u2794 Tags:\n    artist: {artist}\n    title: {title}\n" in caplog.text
     audio = mutagen.File(filepath, easy=True)
     assert verify_tags_set(audio, artist, title)
 
@@ -151,7 +151,7 @@ def test_process_clean(file_extension, tmp_path, caplog):
     assert processed
     for record in caplog.records:
         assert record.levelname == "INFO"
-    assert f"File:\n  {filepath}\nTags:\n  no tags saved\n" in caplog.text
+    assert f"\u27a4 File: {filepath}\n  \u2794 Tags:\n    all tags cleaned\n" in caplog.text
     audio = mutagen.File(filepath, easy=True)
     assert verify_tags_cleared(audio)
 
@@ -165,7 +165,7 @@ def test_process_invalid_file(tmp_path, caplog):
     assert not processed
     for record in caplog.records:
         assert record.levelname == "ERROR"
-    assert f"File:\n  {filepath}\nError:\n  invalid filename (no delimiter found)\n" in caplog.text
+    assert f"\u27a4 File: {filepath}\n  \u2717 Error:\n    invalid filename (no delimiter found)\n" in caplog.text
 
 
 def test_process_unknown_file(caplog):
@@ -175,7 +175,7 @@ def test_process_unknown_file(caplog):
     assert not processed
     for record in caplog.records:
         assert record.levelname == "ERROR"
-    assert "Error:\n  can't find file\n" in caplog.text
+    assert f"\u27a4 File: {filename}\n  \u2717 Error:\n    can't find file\n" in caplog.text
 
 
 def test_run_filenames(tmp_path, caplog):
@@ -190,7 +190,7 @@ def test_run_filenames(tmp_path, caplog):
     for record in caplog.records:
         assert record.levelname in ("INFO")
     for filepath in (tmp_path / filename for filename in filenames):
-        assert f"File:\n  {filepath}\nTags:\n  artist: {artist}\n  title: {title}\n" in caplog.text
+        assert f"\u27a4 File: {filepath}\n  \u2794 Tags:\n    artist: {artist}\n    title: {title}\n" in caplog.text
         audio = mutagen.File(filepath, easy=True)
         assert verify_tags_set(audio, artist, title)
 
@@ -205,7 +205,7 @@ def test_run_filenames_clean(tmp_path, caplog):
     for record in caplog.records:
         assert record.levelname == "INFO"
     for filepath in (tmp_path / filename for filename in filenames):
-        assert f"File:\n  {filepath}\nTags:\n  no tags saved\n" in caplog.text
+        assert f"\u27a4 File: {filepath}\n  \u2794 Tags:\n    all tags cleaned\n" in caplog.text
         audio = mutagen.File(filepath, easy=True)
         assert verify_tags_cleared(audio)
 
@@ -223,10 +223,10 @@ def test_run_dir(tmp_path, caplog):
         assert record.levelname in ("ERROR", "INFO")
     for filepath in (tmp_path / filename for filename in filenames):
         matches = (
-            f"File:\n  {filepath}\nTags:\n  artist: {artist}\n  title: {title}\n",
-            f"File:\n  {filepath}\nError:",
+            f"\u27a4 File: {filepath}\n  \u2794 Tags:\n    artist: {artist}\n    title: {title}\n",
+            f"\u27a4 File: {filepath}\n  \u2717 Error:",
         )
-        assert any(match in caplog.text for match in matches)
+        assert any([match in caplog.text for match in matches])
 
 
 def test_run_dir_clean(tmp_path, caplog):
@@ -240,7 +240,7 @@ def test_run_dir_clean(tmp_path, caplog):
         assert record.levelname in ("ERROR", "INFO")
     for filepath in (tmp_path / filename for filename in filenames):
         matches = (
-            f"File:\n  {filepath}\nTags:\n  no tags saved\n",
-            f"File:\n  {filepath}\nError:",
+            f"\u27a4 File: {filepath}\n  \u2794 Tags:\n    all tags cleaned\n",
+            f"\u27a4 File: {filepath}\n  \u2717 Error:",
         )
-        assert any(match in caplog.text for match in matches)
+        assert any([match in caplog.text for match in matches])

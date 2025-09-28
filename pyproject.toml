@@ -46,6 +46,7 @@ lint = [
 ]
 test = [
     "pytest",
+    "pytest-clarity",
 ]
 validate = [
     "packaging",

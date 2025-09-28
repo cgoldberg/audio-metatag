@@ -52,6 +52,7 @@ def save(audio):
 
 
 def retag(filepath, clean_only=False):
+    file_label = f"\u27a4 File: {filepath}\n"
     try:
         if clean_only:
             artist, title = False, False
@@ -59,7 +60,7 @@ def retag(filepath, clean_only=False):
             artist, title = get_artist_and_title(filepath)
         audio = mutagen.File(filepath, easy=True)
         if audio is None:
-            logger.error(f"File:\n  {filepath}\nError:\n  unknown error\n")
+            logger.error(f"{file_label}\u2717 Error:\n    unknown error\n")
             return None, None
         cleaned_audio = clear_tags(audio)
         if clean_only:
@@ -68,25 +69,26 @@ def retag(filepath, clean_only=False):
             tagged_audio = set_tags(cleaned_audio, artist, title)
             save(tagged_audio)
     except Exception as e:
-        logger.error(f"File:\n  {filepath}\nError:\n  {e}\n")
+        logger.error(f"{file_label}  \u2717 Error:\n    {e}\n")
         return None, None
     return artist, title
 
 
 def process_file(filepath, clean_only=False):
     processed = False
+    file_label = f"\u27a4 File: {filepath}\n"
     if not filepath.exists():
-        logger.error(f"File:\n  {filepath}\nError:\n  can't find file\n")
+        logger.error(f"{file_label}  \u2717 Error:\n    can't find file\n")
     if filepath.name.lower().endswith(FILE_EXTENSIONS):
         artist, title = retag(filepath, clean_only)
         if clean_only:
             if artist is not None:
                 if not artist:
-                    logger.info(f"File:\n  {filepath}\nTags:\n  no tags saved\n")
+                    logger.info(f"{file_label}  \u2794 Tags:\n    all tags cleaned\n")
                     processed = True
         else:
             if artist is not None:
-                logger.info(f"File:\n  {filepath}\nTags:\n  artist: {artist}\n  title: {title}\n")
+                logger.info(f"{file_label}  \u2794 Tags:\n    artist: {artist}\n    title: {title}\n")
                 processed = True
     return processed
 
@@ -108,7 +110,7 @@ def run(path, filenames, clean_only=False):
                     processed_count += 1
     action_msg = "Cleaned" if clean_only else "Cleaned and tagged"
     label_msg = "file" if processed_count == 1 else "files"
-    status_msg = f"{action_msg} {processed_count} audio {label_msg}"
+    status_msg = f"\u2714 {action_msg} {processed_count} audio {label_msg}"
     return status_msg
 
 
@@ -122,11 +124,10 @@ def main():
     filenames = sorted(Path(f) for f in args.filename)
     clean_only = args.clean
     if not path.exists():
-        sys.exit(f"Error: can't find '{path}'")
+        sys.exit(f"\u2717 Error: can't find '{path}'")
     try:
         logger.info("")
         status_msg = run(path, filenames, clean_only)
-        logger.info("-" * 40)
-        logger.info(status_msg)
+        logger.info(f"{status_msg}")
     except KeyboardInterrupt:
-        sys.exit("\nExiting program ...")
+        sys.exit("\n\u2717 Exiting program ...")
