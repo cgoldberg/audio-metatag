@@ -9,6 +9,7 @@ import pytest
 import audio_tag
 
 FILE_EXTENSIONS = ["mp3", "flac", "ogg"]
+SAMPLES_PATH = Path("tests", "sample_files").resolve()
 VALID_FILE_STEM = "Artist - Title"
 ORIGINAL_ARTIST_TAG = "Test Artist"
 ORIGINAL_TITLE_TAG = "Test Title"
@@ -16,11 +17,15 @@ LOG_LEVEL = logging.INFO
 
 
 def copy_file(filename, path):
-    samples_filepath = Path("tests", "sample_files", filename).absolute()
-    shutil.copyfile(samples_filepath, path / samples_filepath.name)
-    audio = mutagen.File(samples_filepath, easy=True)
-    assert ORIGINAL_ARTIST_TAG in audio["artist"]
-    assert ORIGINAL_TITLE_TAG in audio["title"]
+    samples_filepath = Path("tests", "sample_files", filename).resolve()
+    Path(path / Path(filename).parent).mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(SAMPLES_PATH / filename, path / filename)
+    try:
+        audio = mutagen.File(samples_filepath, easy=True)
+        assert ORIGINAL_ARTIST_TAG in audio["artist"]
+        assert ORIGINAL_TITLE_TAG in audio["title"]
+    except mutagen.MutagenError:
+        pass
 
 
 def verify_tags_cleared(audio):
@@ -120,22 +125,6 @@ def test_retag_invalid_file(tmp_path):
 
 
 @pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
-def test_process_clean(file_extension, tmp_path, caplog):
-    filename = f"{VALID_FILE_STEM}.{file_extension}"
-    copy_file(filename, tmp_path)
-    filepath = tmp_path / filename
-    caplog.set_level(LOG_LEVEL)
-    processed = audio_tag.process_file(filepath, clean_only=True)
-    assert processed
-    for record in caplog.records:
-        assert record.levelname == "INFO"
-    matches = ("File:", filepath.name, "Tags:", "no tags saved")
-    assert all(x in caplog.text for x in matches)
-    audio = mutagen.File(filepath, easy=True)
-    assert verify_tags_cleared(audio)
-
-
-@pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
 def test_process(file_extension, tmp_path, caplog):
     artist = "Artist"
     title = "Title"
@@ -147,10 +136,24 @@ def test_process(file_extension, tmp_path, caplog):
     assert processed
     for record in caplog.records:
         assert record.levelname == "INFO"
-    matches = ("File:", filepath.name, "Tags:", f"{artist} - {title}.{file_extension}")
-    assert all(x in caplog.text for x in matches)
+    assert f"File:\n  {filepath}\nTags:\n  artist: {artist}\n  title: {title}\n" in caplog.text
     audio = mutagen.File(filepath, easy=True)
     assert verify_tags_set(audio, artist, title)
+
+
+@pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
+def test_process_clean(file_extension, tmp_path, caplog):
+    filename = f"{VALID_FILE_STEM}.{file_extension}"
+    copy_file(filename, tmp_path)
+    filepath = tmp_path / filename
+    caplog.set_level(LOG_LEVEL)
+    processed = audio_tag.process_file(filepath, clean_only=True)
+    assert processed
+    for record in caplog.records:
+        assert record.levelname == "INFO"
+    assert f"File:\n  {filepath}\nTags:\n  no tags saved\n" in caplog.text
+    audio = mutagen.File(filepath, easy=True)
+    assert verify_tags_cleared(audio)
 
 
 def test_process_invalid_file(tmp_path, caplog):
@@ -162,4 +165,82 @@ def test_process_invalid_file(tmp_path, caplog):
     assert not processed
     for record in caplog.records:
         assert record.levelname == "ERROR"
-    assert "invalid filename (no delimiter found)" in caplog.text
+    assert f"File:\n  {filepath}\nError:\n  invalid filename (no delimiter found)\n" in caplog.text
+
+
+def test_process_unknown_file(caplog):
+    filename = Path("Unknown - File.mp3")
+    caplog.set_level(LOG_LEVEL)
+    processed = audio_tag.process_file(filename)
+    assert not processed
+    for record in caplog.records:
+        assert record.levelname == "ERROR"
+    assert "Error:\n  can't find file\n" in caplog.text
+
+
+def test_run_filenames(tmp_path, caplog):
+    artist = "Artist"
+    title = "Title"
+    filenames = [f"{VALID_FILE_STEM}.{file_extension}" for file_extension in FILE_EXTENSIONS]
+    for filename in filenames:
+        copy_file(filename, tmp_path)
+    caplog.set_level(LOG_LEVEL)
+    status_msg = audio_tag.run(tmp_path, filenames)
+    assert "Cleaned and tagged 3 audio files" in status_msg
+    for record in caplog.records:
+        assert record.levelname in ("INFO")
+    for filepath in (tmp_path / filename for filename in filenames):
+        assert f"File:\n  {filepath}\nTags:\n  artist: {artist}\n  title: {title}\n" in caplog.text
+        audio = mutagen.File(filepath, easy=True)
+        assert verify_tags_set(audio, artist, title)
+
+
+def test_run_filenames_clean(tmp_path, caplog):
+    filenames = [f"{VALID_FILE_STEM}.{file_extension}" for file_extension in FILE_EXTENSIONS]
+    for filename in filenames:
+        copy_file(filename, tmp_path)
+    caplog.set_level(LOG_LEVEL)
+    status_msg = audio_tag.run(tmp_path, filenames, clean_only=True)
+    assert "Cleaned 3 audio files" in status_msg
+    for record in caplog.records:
+        assert record.levelname == "INFO"
+    for filepath in (tmp_path / filename for filename in filenames):
+        assert f"File:\n  {filepath}\nTags:\n  no tags saved\n" in caplog.text
+        audio = mutagen.File(filepath, easy=True)
+        assert verify_tags_cleared(audio)
+
+
+def test_run_dir(tmp_path, caplog):
+    artist = "Artist"
+    title = "Title"
+    filenames = [path.relative_to(SAMPLES_PATH) for path in SAMPLES_PATH.rglob("*") if path.is_file()]
+    for filename in filenames:
+        copy_file(filename, tmp_path)
+    caplog.set_level(LOG_LEVEL)
+    status_msg = audio_tag.run(tmp_path, [])
+    assert "Cleaned and tagged 4 audio files" in status_msg
+    for record in caplog.records:
+        assert record.levelname in ("ERROR", "INFO")
+    for filepath in (tmp_path / filename for filename in filenames):
+        matches = (
+            f"File:\n  {filepath}\nTags:\n  artist: {artist}\n  title: {title}\n",
+            f"File:\n  {filepath}\nError:",
+        )
+        assert any(match in caplog.text for match in matches)
+
+
+def test_run_dir_clean(tmp_path, caplog):
+    filenames = [path.relative_to(SAMPLES_PATH) for path in SAMPLES_PATH.rglob("*") if path.is_file()]
+    for filename in filenames:
+        copy_file(filename, tmp_path)
+    caplog.set_level(LOG_LEVEL)
+    status_msg = audio_tag.run(tmp_path, [], clean_only=True)
+    assert "Cleaned 5 audio files" in status_msg
+    for record in caplog.records:
+        assert record.levelname in ("ERROR", "INFO")
+    for filepath in (tmp_path / filename for filename in filenames):
+        matches = (
+            f"File:\n  {filepath}\nTags:\n  no tags saved\n",
+            f"File:\n  {filepath}\nError:",
+        )
+        assert any(match in caplog.text for match in matches)

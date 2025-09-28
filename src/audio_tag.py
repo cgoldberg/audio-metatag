@@ -96,14 +96,14 @@ def run(path, filenames, clean_only=False):
     if filenames:
         for f in filenames:
             total_count += 1
-            filepath = Path.absolute(path / f)
+            filepath = Path(path / f).resolve()
             if process_file(filepath, clean_only):
                 processed_count += 1
     else:
         for root, dirs, files in path.walk():
             for f in sorted(files):
                 total_count += 1
-                filepath = Path.absolute(root / f)
+                filepath = Path(root / f).resolve()
                 if process_file(filepath, clean_only):
                     processed_count += 1
     action_msg = "Cleaned" if clean_only else "Cleaned and tagged"
@@ -115,7 +115,7 @@ def run(path, filenames, clean_only=False):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("filename", nargs="*", help="file to process (multiple allowed)")
-    parser.add_argument("-d", "--dir", default=Path.cwd().absolute(), help="start directory")
+    parser.add_argument("-d", "--dir", default=Path.cwd().resolve(), help="start directory")
     parser.add_argument("-c", "--clean", action="store_true", help="only clean metadata (don't write tags)")
     args = parser.parse_args()
     path = Path(args.dir)
