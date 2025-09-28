@@ -6,7 +6,7 @@ from pathlib import Path
 import mutagen
 import pytest
 
-import audio_tag
+import audio_metatag
 
 FILE_EXTENSIONS = ["mp3", "flac", "ogg"]
 SAMPLES_PATH = Path("tests", "sample_files").resolve()
@@ -49,13 +49,13 @@ def verify_tags_set(audio, artist, title):
 def test_get_artist_and_title_from_filename_with_invalid_name():
     filepath = Path("Invalid Filename.mp3")
     with pytest.raises(Exception, match=re.escape("invalid filename (no delimiter found)")):
-        audio_tag.get_artist_and_title(filepath)
+        audio_metatag.get_artist_and_title(filepath)
 
 
 @pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
 def test_get_artist_and_title_from_filename(file_extension):
     filepath = Path(f"{VALID_FILE_STEM}.{file_extension}")
-    artist, title = audio_tag.get_artist_and_title(filepath)
+    artist, title = audio_metatag.get_artist_and_title(filepath)
     assert artist == "Artist"
     assert title == "Title"
 
@@ -63,7 +63,7 @@ def test_get_artist_and_title_from_filename(file_extension):
 @pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
 def test_get_artist_and_title_from_filename_with_path(file_extension):
     filepath = Path(f"/path/to/{VALID_FILE_STEM}.{file_extension}")
-    artist, title = audio_tag.get_artist_and_title(filepath)
+    artist, title = audio_metatag.get_artist_and_title(filepath)
     assert artist == "Artist"
     assert title == "Title"
 
@@ -73,7 +73,7 @@ def test_clear_tags(file_extension, tmp_path):
     filename = f"{VALID_FILE_STEM}.{file_extension}"
     copy_file(filename, tmp_path)
     audio = mutagen.File(tmp_path / filename, easy=True)
-    cleared_audio = audio_tag.clear_tags(audio)
+    cleared_audio = audio_metatag.clear_tags(audio)
     assert verify_tags_cleared(cleared_audio)
 
 
@@ -85,7 +85,7 @@ def test_set_tags(file_extension, tmp_path):
     copy_file(filename, tmp_path)
     filepath = tmp_path / filename
     audio = mutagen.File(filepath, easy=True)
-    tagged_audio = audio_tag.set_tags(audio, artist, title)
+    tagged_audio = audio_metatag.set_tags(audio, artist, title)
     assert verify_tags_set(tagged_audio, artist, title)
 
 
@@ -94,7 +94,7 @@ def test_retag_clean(file_extension, tmp_path):
     filename = f"{VALID_FILE_STEM}.{file_extension}"
     copy_file(filename, tmp_path)
     filepath = tmp_path / filename
-    artist, title = audio_tag.retag(filepath, clean_only=True)
+    artist, title = audio_metatag.retag(filepath, clean_only=True)
     assert not artist
     assert not title
     audio = mutagen.File(filepath, easy=True)
@@ -108,7 +108,7 @@ def test_retag(file_extension, tmp_path):
     filename = f"{VALID_FILE_STEM}.{file_extension}"
     copy_file(filename, tmp_path)
     filepath = tmp_path / filename
-    tagged_artist, tagged_title = audio_tag.retag(filepath)
+    tagged_artist, tagged_title = audio_metatag.retag(filepath)
     assert tagged_artist == artist
     assert tagged_title == title
     audio = mutagen.File(filepath, easy=True)
@@ -119,7 +119,7 @@ def test_retag_invalid_file(tmp_path):
     filename = "Invalid Filename.mp3"
     copy_file(filename, tmp_path)
     filepath = tmp_path / filename
-    artist, title = audio_tag.retag(filepath)
+    artist, title = audio_metatag.retag(filepath)
     assert artist is None
     assert title is None
 
@@ -132,7 +132,7 @@ def test_process(file_extension, tmp_path, caplog):
     copy_file(filename, tmp_path)
     filepath = tmp_path / filename
     caplog.set_level(LOG_LEVEL)
-    processed = audio_tag.process_file(filepath)
+    processed = audio_metatag.process_file(filepath)
     assert processed
     for record in caplog.records:
         assert record.levelname == "INFO"
@@ -147,7 +147,7 @@ def test_process_clean(file_extension, tmp_path, caplog):
     copy_file(filename, tmp_path)
     filepath = tmp_path / filename
     caplog.set_level(LOG_LEVEL)
-    processed = audio_tag.process_file(filepath, clean_only=True)
+    processed = audio_metatag.process_file(filepath, clean_only=True)
     assert processed
     for record in caplog.records:
         assert record.levelname == "INFO"
@@ -161,7 +161,7 @@ def test_process_invalid_file(tmp_path, caplog):
     copy_file(filename, tmp_path)
     filepath = tmp_path / filename
     caplog.set_level(LOG_LEVEL)
-    processed = audio_tag.process_file(filepath)
+    processed = audio_metatag.process_file(filepath)
     assert not processed
     for record in caplog.records:
         assert record.levelname == "ERROR"
@@ -171,7 +171,7 @@ def test_process_invalid_file(tmp_path, caplog):
 def test_process_unknown_file(caplog):
     filename = Path("Unknown - File.mp3")
     caplog.set_level(LOG_LEVEL)
-    processed = audio_tag.process_file(filename)
+    processed = audio_metatag.process_file(filename)
     assert not processed
     for record in caplog.records:
         assert record.levelname == "ERROR"
@@ -185,7 +185,7 @@ def test_run_filenames(tmp_path, caplog):
     for filename in filenames:
         copy_file(filename, tmp_path)
     caplog.set_level(LOG_LEVEL)
-    status_msg = audio_tag.run(tmp_path, filenames)
+    status_msg = audio_metatag.run(tmp_path, filenames)
     assert "Cleaned and tagged 3 audio files" in status_msg
     for record in caplog.records:
         assert record.levelname in ("INFO")
@@ -200,7 +200,7 @@ def test_run_filenames_clean(tmp_path, caplog):
     for filename in filenames:
         copy_file(filename, tmp_path)
     caplog.set_level(LOG_LEVEL)
-    status_msg = audio_tag.run(tmp_path, filenames, clean_only=True)
+    status_msg = audio_metatag.run(tmp_path, filenames, clean_only=True)
     assert "Cleaned 3 audio files" in status_msg
     for record in caplog.records:
         assert record.levelname == "INFO"
@@ -217,7 +217,7 @@ def test_run_dir(tmp_path, caplog):
     for filename in filenames:
         copy_file(filename, tmp_path)
     caplog.set_level(LOG_LEVEL)
-    status_msg = audio_tag.run(tmp_path, [])
+    status_msg = audio_metatag.run(tmp_path, [])
     assert "Cleaned and tagged 4 audio files" in status_msg
     for record in caplog.records:
         assert record.levelname in ("ERROR", "INFO")
@@ -234,7 +234,7 @@ def test_run_dir_clean(tmp_path, caplog):
     for filename in filenames:
         copy_file(filename, tmp_path)
     caplog.set_level(LOG_LEVEL)
-    status_msg = audio_tag.run(tmp_path, [], clean_only=True)
+    status_msg = audio_metatag.run(tmp_path, [], clean_only=True)
     assert "Cleaned 5 audio files" in status_msg
     for record in caplog.records:
         assert record.levelname in ("ERROR", "INFO")

@@ -1,4 +1,4 @@
-# audio-tag
+# audio-metatag
 
 ## Clean metadata and tag audio files (MP3, FLAC, Ogg Vorbis)
 
@@ -13,7 +13,7 @@
 
 ## About:
 
-`audio_tag` is a Python CLI program that cleans metadata and adds artist/title
+`audio_metatag` is a Python CLI program that cleans metadata and adds artist/title
 tags to MP3, FLAC, or Ogg vorbis audio files. It can be used on individual
 files or a library of files.
 
@@ -38,16 +38,16 @@ files or a library of files.
 
 ## Installation:
 
-Install from [PyPI][pypi-audio-tag]:
+Install from [PyPI][pypi-audio-metatag]:
 
 ```
-pip install audio-tag
+pip install audio-metatag
 ```
 
 ## CLI Options:
 
 ```
-usage: audio_tag [-h] [-d DIR] [-c] [filename ...]
+usage: audio_metatag [-h] [-d DIR] [-c] [filename ...]
 
 positional arguments:
   filename       file to process (multiple allowed)
@@ -63,22 +63,22 @@ options:
 #### Install from PyPI with pipx, Run:
 
 ```
-pipx install audio-tag
-audio_tag
+pipx install audio-metatag
+audio_metatag
 ```
 
 #### Clone Repo, Create/Activate Virtual Environment, Install from Source, Run:
 
 ```
-git clone git@github.com:cgoldberg/audio-tag.git
-cd ./audio-tag
+git clone git@github.com:cgoldberg/audio-metatag.git
+cd ./audio-metatag
 python3 -m venv venv
 source venv/bin/activate
 pip install .
-audio_tag
+audio_metatag
 ```
 
 [github-home]: https://github.com/cgoldberg
-[github-repo]: https://github.com/cgoldberg/audio-tag
-[pypi-audio-tag]: https://pypi.org/project/audio-tag
-[mit-license]: https://raw.githubusercontent.com/cgoldberg/audio-tag/refs/heads/main/LICENSE
+[github-repo]: https://github.com/cgoldberg/audio-metatag
+[pypi-audio-tag]: https://pypi.org/project/audio-metatag
+[mit-license]: https://raw.githubusercontent.com/cgoldberg/audio-metatag/refs/heads/main/LICENSE
