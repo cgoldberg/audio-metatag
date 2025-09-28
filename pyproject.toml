@@ -11,7 +11,7 @@ license-files = ["LICENSE"]
 authors = [{name = "Corey Goldberg"}]
 maintainers = [{name = "Corey Goldberg"}]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 keywords = [
     "audio", "cleaner", "cli", "flac", "metadata", "mp3", "music",
     "ogg-vorbis", "tags", "tagging"
@@ -20,9 +20,6 @@ classifiers = [
     "Environment :: Console",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
@@ -65,7 +62,7 @@ tmp_path_retention_policy = "none"
 [tool.black]
 line-length = 120
 target-version = [
-    "py39", "py310", "py311", "py312", "py313"
+    "py312", "py313"
 ]
 
 [tool.ruff]
@@ -88,7 +85,7 @@ docstring-code-format = true
 docstring-code-line-length = 120
 
 [tool.refurb]
-python_version = "3.9"
+python_version = "3.12"
 enable_all = true
 disable = [
     "FURB107", "FURB173", "FURB183", "FURB184"
