@@ -1,6 +1,6 @@
 # audio-metatag
 
-## Clean metadata and tag audio files (MP3, FLAC, Ogg Vorbis)
+### Clean metadata and tag audio files (MP3, FLAC, Ogg Vorbis)
 
 ---
 
