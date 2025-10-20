@@ -4,6 +4,8 @@
 
 ---
 
+[![Supported Python Versions](https://img.shields.io/pypi/pyversions/audio-metatag)](https://pypi.org/project/audio-metatag)
+
 - Copyright (c) 2015-2025 [Corey Goldberg][github-home]
 - Development: [GitHub][github-repo]
 - Download/Install: [PyPI][pypi-audio-tag]
