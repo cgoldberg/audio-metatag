@@ -10,7 +10,7 @@ from pathlib import Path
 
 import mutagen
 
-logging.basicConfig(level=logging.INFO, format="%(message)s")
+logging.basicConfig(level=logging.INFO, stream=sys.stdout, format="%(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -75,22 +75,22 @@ def retag(filepath, clean_only=False):
 
 
 def process_file(filepath, clean_only=False):
-    processed = False
     file_label = f"\u27a4 File: {filepath}\n"
     if not filepath.exists():
         logger.error(f"{file_label}  \u2717 Error:\n    can't find file\n")
+        return False
     if filepath.name.lower().endswith(FILE_EXTENSIONS):
         artist, title = retag(filepath, clean_only)
         if clean_only:
             if artist is not None:
                 if not artist:
                     logger.info(f"{file_label}  \u2794 Tags:\n    all tags cleaned\n")
-                    processed = True
+                    return True
         else:
             if artist is not None:
                 logger.info(f"{file_label}  \u2794 Tags:\n    artist: {artist}\n    title: {title}\n")
-                processed = True
-    return processed
+                return True
+    return False
 
 
 def run(path, filenames, clean_only=False):

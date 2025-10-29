@@ -62,22 +62,28 @@ options:
 
 ## Usage Examples:
 
-#### Install from PyPI with pipx, Run:
+#### Install from PyPI with pipx:
 
 ```
 pipx install audio-metatag
+```
+
+#### Clean metadata and tag a single file:
+
+```
+audio_metatag "Some Artist - Some Title.mp3"
+```
+
+#### Clean metadata and tag all files in current directory (recurse subdirectories):
+
+```
 audio_metatag
 ```
 
-#### Clone Repo, Create/Activate Virtual Environment, Install from Source, Run:
+#### Clean metadata from all files in a directory (recurse subdirectories):
 
 ```
-git clone git@github.com:cgoldberg/audio-metatag.git
-cd ./audio-metatag
-python3 -m venv venv
-source venv/bin/activate
-pip install .
-audio_metatag
+audio_metatag --clean --dir=/path/to/files
 ```
 
 [github-home]: https://github.com/cgoldberg

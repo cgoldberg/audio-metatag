@@ -188,7 +188,7 @@ def test_run_filenames(tmp_path, caplog):
     status_msg = audio_metatag.run(tmp_path, filenames)
     assert "Cleaned and tagged 3 audio files" in status_msg
     for record in caplog.records:
-        assert record.levelname in ("INFO")
+        assert record.levelname == "INFO"
     for filepath in (tmp_path / filename for filename in filenames):
         assert f"\u27a4 File: {filepath}\n  \u2794 Tags:\n    artist: {artist}\n    title: {title}\n" in caplog.text
         audio = mutagen.File(filepath, easy=True)
