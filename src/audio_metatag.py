@@ -52,7 +52,7 @@ def save(audio):
 
 
 def retag(filepath, clean_only=False):
-    file_label = f"{light_blue_arrowhead()} File: {filepath}"
+    file_label = f"{light_blue_arrowhead()}  File: {filepath}"
     try:
         if clean_only:
             artist, title = False, False
@@ -60,7 +60,7 @@ def retag(filepath, clean_only=False):
             artist, title = get_artist_and_title(filepath)
         audio = mutagen.File(filepath, easy=True)
         if audio is None:
-            logger.error(f"{file_label}\n  {red_x()} Error:\n    unknown error\n")
+            logger.error(f"{file_label}\n   {red_x()} Error:\n     unknown error\n")
             return None, None
         cleaned_audio = clear_tags(audio)
         if clean_only:
@@ -69,26 +69,28 @@ def retag(filepath, clean_only=False):
             tagged_audio = set_tags(cleaned_audio, artist, title)
             save(tagged_audio)
     except Exception as e:
-        logger.error(f"{file_label}\n  {red_x()} Error:\n    {e}\n")
+        logger.error(f"{file_label}\n   {red_x()} Error:\n     {e}\n")
         return None, None
     return artist, title
 
 
 def process_file(filepath, clean_only=False):
-    file_label = f"{light_blue_arrowhead()} File: {filepath}"
+    file_label = f"{light_blue_arrowhead()}  File: {filepath}"
     if not filepath.exists():
-        logger.error(f"{file_label}\n  {red_x()} Error:\n    can't find file\n")
+        logger.error(f"{file_label}\n   {red_x()} Error:\n     can't find file\n")
         return False
     if filepath.name.lower().endswith(FILE_EXTENSIONS):
         artist, title = retag(filepath, clean_only)
         if clean_only:
             if artist is not None:
                 if not artist:
-                    logger.info(f"{file_label}\n  {light_blue_arrow()} Tags:\n    all tags cleaned\n")
+                    logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:\n     all tags cleaned\n")
                     return True
         else:
             if artist is not None:
-                logger.info(f"{file_label}\n  {light_blue_arrow()} Tags:\n    artist: {artist}\n    title: {title}\n")
+                logger.info(
+                    f"{file_label}\n   {light_blue_arrow()} Tags:\n     artist: {artist}\n     title: {title}\n"
+                )
                 return True
     return False
 
@@ -148,6 +150,6 @@ def main():
         sys.exit(f"{red_x()} Error: can't find '{path}'")
     try:
         status_msg = run(path, filenames, clean_only)
-        logger.info(f"\n{green_checkmark()}  {status_msg}")
+        logger.info(f"{green_checkmark()}  {status_msg}")
     except KeyboardInterrupt:
         sys.exit()
