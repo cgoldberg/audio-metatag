@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "audio-metatag"
-version = "0.1.4"
+version = "0.1.5dev0"
 description = "Clean metadata and tag audio files (MP3, FLAC, Ogg Vorbis)"
 license = "MIT"
 license-files = ["LICENSE"]
