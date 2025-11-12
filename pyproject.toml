@@ -63,13 +63,13 @@ tmp_path_retention_policy = "none"
 [tool.black]
 line-length = 120
 target-version = [
-    "py312", "py313"
+    "py312", "py313", "py314"
 ]
 
 [tool.ruff]
 line-length = 120
 respect-gitignore = true
-target-version = "py39"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = [
