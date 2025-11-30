@@ -96,8 +96,6 @@ def test_get_tags(file_extension, tmp_path):
     filepath = tmp_path / filename
     tags = audio_metatag.get_tags(filepath)
     assert len(tags) == 2
-    assert len(tags["artist"]) == 1
-    assert len(tags["title"]) == 1
     assert tags["artist"] == "Test Artist"
     assert tags["title"] == "Test Title"
 
