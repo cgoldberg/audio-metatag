@@ -51,6 +51,19 @@ def save(audio):
     return audio
 
 
+def get_metadata(filepath):
+    file_label = f"{light_blue_arrowhead()}  File: {filepath}"
+    try:
+        audio = mutagen.File(filepath, easy=True)
+        if audio is None:
+            logger.error(f"{file_label}\n   {red_x()} Error:\n     unknown error\n")
+            return None, None
+    except Exception as e:
+        logger.error(f"{file_label}\n   {red_x()} Error:\n     {e}\n")
+        return None, None
+    return {tag: value for tag, value in audio.tags}
+
+
 def retag(filepath, clean_only=False):
     file_label = f"{light_blue_arrowhead()}  File: {filepath}"
     try:
@@ -74,43 +87,56 @@ def retag(filepath, clean_only=False):
     return artist, title
 
 
-def process_file(filepath, clean_only=False):
+def process_file(filepath, clean_only=False, show_only=False):
     file_label = f"{light_blue_arrowhead()}  File: {filepath}"
     if not filepath.exists():
         logger.error(f"{file_label}\n   {red_x()} Error:\n     can't find file\n")
         return False
     if filepath.name.lower().endswith(FILE_EXTENSIONS):
-        artist, title = retag(filepath, clean_only)
-        if clean_only:
-            if artist is not None:
-                if not artist:
-                    logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:\n     all tags cleaned\n")
-                    return True
+        if show_only:
+            tags = get_metadata(filepath)
+            logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:")
+            for tag, value in tags.items():
+                logger.info(f"     {tag}: {value}")
+            logger.info("")
+            return True
         else:
-            if artist is not None:
-                logger.info(
-                    f"{file_label}\n   {light_blue_arrow()} Tags:\n     artist: {artist}\n     title: {title}\n"
-                )
-                return True
+            artist, title = retag(filepath, clean_only)
+            if clean_only:
+                if artist is not None:
+                    if not artist:
+                        logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:\n     all tags cleaned\n")
+                        return True
+            else:
+                if artist is not None:
+                    logger.info(
+                        f"{file_label}\n   {light_blue_arrow()} Tags:\n     artist: {artist}\n     title: {title}\n"
+                    )
+                    return True
     return False
 
 
-def run(path, filenames, clean_only=False):
+def run(path, filenames, clean_only=False, show_only=False):
     processed_count = total_count = 0
     if filenames:
         for f in filenames:
             total_count += 1
             filepath = Path(path / f).resolve()
-            if process_file(filepath, clean_only):
+            if process_file(filepath, clean_only, show_only):
                 processed_count += 1
     else:
         for root, dirs, files in path.walk():
             for f in sorted(files):
                 total_count += 1
                 filepath = Path(root / f).resolve()
-                if process_file(filepath, clean_only):
+                if process_file(filepath, clean_only, show_only):
                     processed_count += 1
-    action_msg = "Cleaned" if clean_only else "Cleaned and tagged"
+    if show_only:
+        action_msg = "Showed tags from"
+    elif clean_only:
+        action_msg = "Cleaned"
+    else:
+        action_msg = "Cleaned and tagged"
     label_msg = "file" if processed_count == 1 else "files"
     status_msg = f"{action_msg} {processed_count} audio {label_msg}"
     return status_msg
@@ -141,15 +167,19 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("filename", nargs="*", help="file to process (multiple allowed)")
     parser.add_argument("-d", "--dir", default=Path.cwd().resolve(), help="start directory")
-    parser.add_argument("-c", "--clean", action="store_true", help="only clean metadata (don't write tags)")
+    parser.add_argument("-c", "--clean", action="store_true", help="only clean metadata (don't write new tags)")
+    parser.add_argument("-s", "--show", action="store_true", help="only show metadata (don't remove or write tags)")
     args = parser.parse_args()
+    clean_only = args.clean
+    show_only = args.show
+    if clean_only and show_only:
+        sys.exit(f"{red_x()} Error: can't use both --clean and --show")
     path = Path(args.dir)
     filenames = sorted(Path(f) for f in args.filename)
-    clean_only = args.clean
     if not path.exists():
         sys.exit(f"{red_x()} Error: can't find '{path}'")
     try:
-        status_msg = run(path, filenames, clean_only)
+        status_msg = run(path, filenames, clean_only, show_only)
         logger.info(f"{green_checkmark()}  {status_msg}")
     except KeyboardInterrupt:
         sys.exit()
