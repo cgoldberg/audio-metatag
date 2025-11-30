@@ -55,14 +55,15 @@ def get_tags(filepath):
         audio = mutagen.File(filepath, easy=True)
         if audio is None:
             logger.error(f"{file_label}\n   {red_x()} Error:\n     unknown error\n")
-            return None, None
+            return None
+        else:
+            if isinstance(audio.tags, mutagen.easyid3.EasyID3):
+                tags = {tag: value[0] for tag, value in audio.tags.items()}
+            else:
+                tags = {tag: value for tag, value in audio.tags}
     except Exception as e:
         logger.error(f"{file_label}\n   {red_x()} Error:\n     {e}\n")
-        return None, None
-    if isinstance(audio.tags, mutagen.easyid3.EasyID3):
-        tags = {tag: value[0] for tag, value in audio.tags.items()}
-    else:
-        tags = {tag: value for tag, value in audio.tags}
+        return None
     return tags
 
 
@@ -97,11 +98,14 @@ def process_file(filepath, clean_only=False, show_only=False):
     if filepath.name.lower().endswith(FILE_EXTENSIONS):
         if show_only:
             tags = get_tags(filepath)
-            logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:")
-            for tag, value in tags.items():
-                logger.info(f"     {tag}: {value}")
-            logger.info("")
-            return True
+            if tags is None:
+                return False
+            else:
+                logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:")
+                for tag, value in tags.items():
+                    logger.info(f"     {tag}: {value}")
+                logger.info("")
+                return True
         else:
             artist, title = retag(filepath, clean_only)
             if clean_only:
