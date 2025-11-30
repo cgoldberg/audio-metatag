@@ -144,7 +144,7 @@ def test_process(file_extension, tmp_path, caplog):
     filepath = tmp_path / filename
     caplog.set_level(LOG_LEVEL)
     processed = audio_metatag.process_file(filepath)
-    assert processed
+    assert processed is True
     for record in caplog.records:
         assert record.levelname == "INFO"
     assert f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     artist: {artist}\n     title: {title}\n" in caplog.text
@@ -159,12 +159,29 @@ def test_process_clean(file_extension, tmp_path, caplog):
     filepath = tmp_path / filename
     caplog.set_level(LOG_LEVEL)
     processed = audio_metatag.process_file(filepath, clean_only=True)
-    assert processed
+    assert processed is True
     for record in caplog.records:
         assert record.levelname == "INFO"
     assert f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     all tags cleaned\n" in caplog.text
     audio = mutagen.File(filepath, easy=True)
     assert verify_tags_cleared(audio)
+
+
+@pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
+def test_process_show(file_extension, tmp_path, caplog):
+    artist = "Test Artist"
+    title = "Test Title"
+    filename = f"{VALID_FILE_STEM}.{file_extension}"
+    copy_file(filename, tmp_path)
+    filepath = tmp_path / filename
+    caplog.set_level(LOG_LEVEL)
+    processed = audio_metatag.process_file(filepath, show_only=True)
+    assert processed is True
+    for record in caplog.records:
+        assert record.levelname == "INFO"
+    assert f"\u27a4  File: {filepath}\n   \u2794 Tags:\n" in caplog.text
+    assert f"     artist: {artist}\n" in caplog.text
+    assert f"     title: {title}\n" in caplog.text
 
 
 def test_process_invalid_file(tmp_path, caplog):
@@ -173,7 +190,7 @@ def test_process_invalid_file(tmp_path, caplog):
     filepath = tmp_path / filename
     caplog.set_level(LOG_LEVEL)
     processed = audio_metatag.process_file(filepath)
-    assert not processed
+    assert processed is False
     for record in caplog.records:
         assert record.levelname == "ERROR"
     assert f"\u27a4  File: {filepath}\n   \u2717 Error:\n     invalid filename (no delimiter found)\n" in caplog.text
@@ -183,7 +200,7 @@ def test_process_unknown_file(caplog):
     filename = Path("Unknown - File.mp3")
     caplog.set_level(LOG_LEVEL)
     processed = audio_metatag.process_file(filename)
-    assert not processed
+    assert processed is False
     for record in caplog.records:
         assert record.levelname == "ERROR"
     assert f"\u27a4  File: {filename}\n   \u2717 Error:\n     can't find file\n" in caplog.text
