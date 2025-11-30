@@ -90,15 +90,16 @@ def test_set_tags(file_extension, tmp_path):
 
 
 @pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
-def test_retag_clean(file_extension, tmp_path):
+def test_get_tags(file_extension, tmp_path):
     filename = f"{VALID_FILE_STEM}.{file_extension}"
     copy_file(filename, tmp_path)
     filepath = tmp_path / filename
-    artist, title = audio_metatag.retag(filepath, clean_only=True)
-    assert not artist
-    assert not title
-    audio = mutagen.File(filepath, easy=True)
-    assert verify_tags_cleared(audio)
+    tags = audio_metatag.get_tags(filepath)
+    assert len(tags) == 2
+    assert len(tags["ARTIST"]) == 1
+    assert len(tags["TITLE"]) == 1
+    assert tags["ARTIST"] == "Artist"
+    assert tags["TITLE"] == "Title"
 
 
 @pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
@@ -113,6 +114,18 @@ def test_retag(file_extension, tmp_path):
     assert tagged_title == title
     audio = mutagen.File(filepath, easy=True)
     assert verify_tags_set(audio, artist, title)
+
+
+@pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
+def test_retag_clean(file_extension, tmp_path):
+    filename = f"{VALID_FILE_STEM}.{file_extension}"
+    copy_file(filename, tmp_path)
+    filepath = tmp_path / filename
+    artist, title = audio_metatag.retag(filepath, clean_only=True)
+    assert not artist
+    assert not title
+    audio = mutagen.File(filepath, easy=True)
+    assert verify_tags_cleared(audio)
 
 
 def test_retag_invalid_file(tmp_path):

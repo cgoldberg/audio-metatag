@@ -49,7 +49,7 @@ def save(audio):
     return audio
 
 
-def get_metadata(filepath):
+def get_tags(filepath):
     file_label = f"{light_blue_arrowhead()}  File: {filepath}"
     try:
         audio = mutagen.File(filepath, easy=True)
@@ -59,7 +59,11 @@ def get_metadata(filepath):
     except Exception as e:
         logger.error(f"{file_label}\n   {red_x()} Error:\n     {e}\n")
         return None, None
-    return {tag: value for tag, value in audio.tags}
+    if isinstance(audio.tags, mutagen.easyid3.EasyID3):
+        tags = {tag: value[0] for tag, value in audio.tags.items()}
+    else:
+        tags = {tag: value for tag, value in audio.tags}
+    return tags
 
 
 def retag(filepath, clean_only=False):
@@ -92,7 +96,7 @@ def process_file(filepath, clean_only=False, show_only=False):
         return False
     if filepath.name.lower().endswith(FILE_EXTENSIONS):
         if show_only:
-            tags = get_metadata(filepath)
+            tags = get_tags(filepath)
             logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:")
             for tag, value in tags.items():
                 logger.info(f"     {tag}: {value}")
