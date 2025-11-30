@@ -22,8 +22,8 @@ def copy_file(filename, path):
     shutil.copyfile(SAMPLES_PATH / filename, path / filename)
     try:
         audio = mutagen.File(samples_filepath, easy=True)
-        assert ORIGINAL_ARTIST_TAG in audio["ARTIST"]
-        assert ORIGINAL_TITLE_TAG in audio["TITLE"]
+        assert ORIGINAL_ARTIST_TAG in audio["artist"]
+        assert ORIGINAL_TITLE_TAG in audio["title"]
     except mutagen.MutagenError:
         pass
 
@@ -31,18 +31,18 @@ def copy_file(filename, path):
 def verify_tags_cleared(audio):
     assert len(audio.tags) == 0
     with pytest.raises(KeyError):
-        audio["ARTIST"]
+        audio["artist"]
     with pytest.raises(KeyError):
-        audio["TITLE"]
+        audio["title"]
     return True
 
 
 def verify_tags_set(audio, artist, title):
     assert len(audio.tags) == 2
-    assert len(audio["ARTIST"]) == 1
-    assert len(audio["TITLE"]) == 1
-    assert artist in audio["ARTIST"]
-    assert title in audio["TITLE"]
+    assert len(audio["artist"]) == 1
+    assert len(audio["title"]) == 1
+    assert artist in audio["artist"]
+    assert title in audio["title"]
     return True
 
 
@@ -96,10 +96,10 @@ def test_get_tags(file_extension, tmp_path):
     filepath = tmp_path / filename
     tags = audio_metatag.get_tags(filepath)
     assert len(tags) == 2
-    assert len(tags["ARTIST"]) == 1
-    assert len(tags["TITLE"]) == 1
-    assert tags["ARTIST"] == "Artist"
-    assert tags["TITLE"] == "Title"
+    assert len(tags["artist"]) == 1
+    assert len(tags["title"]) == 1
+    assert tags["artist"] == "Test Artist"
+    assert tags["title"] == "Test Title"
 
 
 @pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
@@ -149,7 +149,7 @@ def test_process(file_extension, tmp_path, caplog):
     assert processed
     for record in caplog.records:
         assert record.levelname == "INFO"
-    assert f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     ARTIST: {artist}\n     TITLE: {title}\n" in caplog.text
+    assert f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     artist: {artist}\n     title: {title}\n" in caplog.text
     audio = mutagen.File(filepath, easy=True)
     assert verify_tags_set(audio, artist, title)
 
@@ -203,7 +203,7 @@ def test_run_filenames(tmp_path, caplog):
     for record in caplog.records:
         assert record.levelname == "INFO"
     for filepath in (tmp_path / filename for filename in filenames):
-        assert f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     ARTIST: {artist}\n     TITLE: {title}\n" in caplog.text
+        assert f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     artist: {artist}\n     title: {title}\n" in caplog.text
         audio = mutagen.File(filepath, easy=True)
         assert verify_tags_set(audio, artist, title)
 
@@ -236,7 +236,7 @@ def test_run_dir(tmp_path, caplog):
         assert record.levelname in ("ERROR", "INFO")
     for filepath in (tmp_path / filename for filename in filenames):
         matches = (
-            f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     ARTIST: {artist}\n     TITLE: {title}\n",
+            f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     artist: {artist}\n     title: {title}\n",
             f"\u27a4  File: {filepath}\n   \u2717 Error:",
         )
         assert any([match in caplog.text for match in matches])

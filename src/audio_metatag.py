@@ -32,8 +32,8 @@ def clear_tags(audio):
 
 
 def set_tags(audio, artist, title):
-    audio["ARTIST"] = artist
-    audio["TITLE"] = title
+    audio["artist"] = artist
+    audio["title"] = title
     return audio
 
 
@@ -116,7 +116,7 @@ def process_file(filepath, clean_only=False, show_only=False):
             else:
                 if artist is not None:
                     logger.info(
-                        f"{file_label}\n   {light_blue_arrow()} Tags:\n     ARTIST: {artist}\n     TITLE: {title}\n"
+                        f"{file_label}\n   {light_blue_arrow()} Tags:\n     artist: {artist}\n     title: {title}\n"
                     )
                     return True
     return False
