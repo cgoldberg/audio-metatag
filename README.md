@@ -8,14 +8,14 @@
 
 - Copyright (c) 2015-2025 [Corey Goldberg][github-home]
 - Development: [GitHub][github-repo]
-- Download/Install: [PyPI][pypi-audio-tag]
+- Download/Install: [PyPI][pypi-audio-metatag]
 - License: [MIT][mit-license]
 
 ----
 
 ## About:
 
-`audio_metatag` is a Python CLI program that cleans metadata and adds artist/title
+`audio_metatag` is a Python CLI program that cleans metadata and adds ARTIST/TITLE
 tags to MP3, FLAC, or Ogg vorbis audio files. It can be used on individual
 files or a library of files.
 
@@ -31,7 +31,7 @@ files or a library of files.
 **Warning**: Edits are done in-place. Backup your files first if you want a copy of the originals.
 
 - Existing metadata (tags) and pictures are deleted
-- Artist and Title tag data is taken from the filename
+- ARTIST and TITLE tag data is taken from the filename
 - Metadata tags are saved to the file (id3v2, flac, ogg)
 
 ## Requirements:
@@ -89,5 +89,5 @@ audio_metatag --clean --dir=/path/to/files
 
 [github-home]: https://github.com/cgoldberg
 [github-repo]: https://github.com/cgoldberg/audio-metatag
-[pypi-audio-tag]: https://pypi.org/project/audio-metatag
+[pypi-audio-metatag]: https://pypi.org/project/audio-metatag
 [mit-license]: https://raw.githubusercontent.com/cgoldberg/audio-metatag/refs/heads/main/LICENSE
