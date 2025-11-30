@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # Copyright (c) 2015-2025 Corey Goldberg
 # MIT License
 
