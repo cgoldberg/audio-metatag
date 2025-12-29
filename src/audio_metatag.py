@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 
 import mutagen
+import mutagen.apev2
+import mutagen.easyid3
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -25,9 +27,14 @@ def get_artist_and_title(filepath):
 
 
 def clear_tags(audio):
-    audio.delete()
-    if "audio/x-flac" in audio.mime:
+    if "audio/x-mp3" in audio.mime:
+        # some MP3's have APEv2 tags also
+        audio.tags = mutagen.apev2.APEv2()
+        audio.delete()
+        audio.tags = mutagen.easyid3.EasyID3()
+    elif "audio/x-flac" in audio.mime:
         audio.clear_pictures()
+    audio.delete()
     return audio
 
 
@@ -51,6 +58,7 @@ def save(audio):
 
 def get_tags(filepath):
     file_label = f"{light_blue_arrowhead()}  File: {filepath}"
+    tags = {}
     try:
         audio = mutagen.File(filepath, easy=True)
         if audio is None:
@@ -58,9 +66,19 @@ def get_tags(filepath):
             return None
         else:
             if isinstance(audio.tags, mutagen.easyid3.EasyID3):
-                tags = {tag: value[0] for tag, value in audio.tags.items()}
+                id3_tags = {tag: value[0] for tag, value in audio.tags.items()} if audio.tags is not None else {}
+                # some MP3's have APEv2 tags also
+                ape = mutagen.apev2.APEv2File(filepath)
+                ape_tags = {}
+                if ape.tags is not None:
+                    for tag, value in ape.tags.items():
+                        ape_tags[f"ape_{tag.lower()}"] = (
+                            "<BINARY>" if isinstance(value, mutagen.apev2.APEBinaryValue) else value
+                        )
+                tags = id3_tags | ape_tags
             else:
-                tags = {tag: value for tag, value in audio.tags}
+                if audio.tags is not None:
+                    tags = {tag: value for tag, value in audio.tags}
     except Exception as e:
         logger.error(f"{file_label}\n   {red_x()} Error:\n     {e}\n")
         return None
