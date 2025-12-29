@@ -241,7 +241,8 @@ def test_run_filenames_clean(tmp_path, caplog):
 def test_run_dir(tmp_path, caplog):
     artist = "Artist"
     title = "Title"
-    filenames = [path.relative_to(SAMPLES_PATH) for path in SAMPLES_PATH.rglob("*") if path.is_file()]
+    filenames = [path.relative_to(SAMPLES_PATH) for path in SAMPLES_PATH.rglob("**/*") if path.is_file()]
+    num_files = len(filenames)
     for filename in filenames:
         copy_file(filename, tmp_path)
     caplog.set_level(LOG_LEVEL)
@@ -249,7 +250,9 @@ def test_run_dir(tmp_path, caplog):
     assert "Cleaned and tagged 4 audio files" in status_msg
     for record in caplog.records:
         assert record.levelname in ("ERROR", "INFO")
-    for filepath in (tmp_path / filename for filename in filenames):
+    temp_files = [tmp_path / filename for filename in filenames]
+    assert num_files == len(temp_files)
+    for filepath in temp_files:
         matches = (
             f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     artist: {artist}\n     title: {title}\n",
             f"\u27a4  File: {filepath}\n   \u2717 Error:",
@@ -258,7 +261,8 @@ def test_run_dir(tmp_path, caplog):
 
 
 def test_run_dir_clean(tmp_path, caplog):
-    filenames = [path.relative_to(SAMPLES_PATH) for path in SAMPLES_PATH.rglob("*") if path.is_file()]
+    filenames = [path.relative_to(SAMPLES_PATH) for path in SAMPLES_PATH.rglob("**/*") if path.is_file()]
+    num_files = len(filenames)
     for filename in filenames:
         copy_file(filename, tmp_path)
     caplog.set_level(LOG_LEVEL)
@@ -266,7 +270,9 @@ def test_run_dir_clean(tmp_path, caplog):
     assert "Cleaned 5 audio files" in status_msg
     for record in caplog.records:
         assert record.levelname in ("ERROR", "INFO")
-    for filepath in (tmp_path / filename for filename in filenames):
+    temp_files = [tmp_path / filename for filename in filenames]
+    assert num_files == len(temp_files)
+    for filepath in temp_files:
         matches = (
             f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     all tags cleaned\n",
             f"\u27a4  File: {filepath}\n   \u2717 Error:",
