@@ -189,7 +189,7 @@ def light_blue_arrowhead():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("filename", nargs="*", help="file to process (multiple allowed)")
+    parser.add_argument("filename", nargs="*", help="[optional] file to process (multiple allowed)")
     parser.add_argument("-d", "--dir", default=Path.cwd().resolve(), help="start directory")
     parser.add_argument("-c", "--clean", action="store_true", help="only clean metadata (don't write new tags)")
     parser.add_argument("-s", "--show", action="store_true", help="only show metadata (don't remove or write tags)")

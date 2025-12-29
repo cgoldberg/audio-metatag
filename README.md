@@ -52,13 +52,13 @@ pip install audio-metatag
 usage: audio_metatag [-h] [-d DIR] [-c] [-s] [filename ...]
 
 positional arguments:
-  filename              file to process (multiple allowed)
+  filename       [optional] file to process (multiple allowed)
 
 options:
-  -h, --help            show this help message and exit
-  -d, --dir DIR         start directory
-  -c, --clean           only clean metadata (don't write new tags)
-  -s, --show            only show metadata (don't remove or write tags)
+  -h, --help     show this help message and exit
+  -d, --dir DIR  start directory
+  -c, --clean    only clean metadata (don't write new tags)
+  -s, --show     only show metadata (don't remove or write tags)
 ```
 
 ## Usage Examples:
