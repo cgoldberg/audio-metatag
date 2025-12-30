@@ -11,8 +11,6 @@ import audio_metatag
 FILE_EXTENSIONS = ["mp3", "flac", "ogg"]
 SAMPLES_PATH = Path("tests", "sample_files").resolve()
 VALID_FILE_STEM = "Artist - Title"
-ORIGINAL_ARTIST_TAG = "Test Artist"
-ORIGINAL_TITLE_TAG = "Test Title"
 LOG_LEVEL = logging.INFO
 
 
@@ -22,8 +20,8 @@ def copy_file(filename, path):
     shutil.copyfile(SAMPLES_PATH / filename, path / filename)
     try:
         audio = mutagen.File(samples_filepath, easy=True)
-        assert ORIGINAL_ARTIST_TAG in audio["artist"]
-        assert ORIGINAL_TITLE_TAG in audio["title"]
+        assert "Test Artist" in audio["artist"], "test files are tagged incorrectly"
+        assert "Test Title" in audio["title"], "test files are tagged incorrectly"
     except mutagen.MutagenError:
         pass
 
