@@ -24,9 +24,6 @@ files or a library of files.
   - File names must contain a delimiter (` - `) between `Artist` and `Title`,
     and end with a valid extension: `.mp3`, `.flac`, `.ogg` (case-insensitive)
 - It will skip any files that are not named according to the format specified above
-- If filenames are given as command-line options, it will only process those files
-- If no filename is specified, it will process all files (recursively) in the current directory
-- A different directory can be specified using the `--dir` option
 
 **Warning**: Edits are done in-place. Backup your files first if you want a copy of the originals.
 
@@ -47,6 +44,10 @@ pip install audio-metatag
 ```
 
 ## CLI Options:
+
+- If filenames are given as command-line options, it will only process those files
+- If no filename is specified, it will process all files (recursively) in the current directory
+- A different directory can be specified using the `--dir` option
 
 ```
 usage: audio_metatag [-h] [-d DIR] [-c] [-s] [filename ...]
