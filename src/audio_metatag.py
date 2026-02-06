@@ -3,19 +3,27 @@
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 
 import mutagen
-import mutagen.apev2
-import mutagen.easyid3
+from mutagen.easyid3 import EasyID3
+from mutagen.flac import FLAC, StreamInfo
+from mutagen.mp3 import MP3, EasyMP3
+from mutagen.oggvorbis import OggVorbis
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, format="%(message)s")
 logger = logging.getLogger(__name__)
 
 
-SUPPORTED_FORMATS = ("FLAC", "MP3", "OGG")
-FILE_EXTENSIONS = tuple(f".{x.lower()}" for x in SUPPORTED_FORMATS)
+FILE_EXTENSIONS = ("mp3", "flac", "ogg")
+
+
+def is_supported_format(audio):
+    if audio is not None and isinstance(audio, (EasyID3, FLAC, MP3, OggVorbis)):
+        return True
+    return False
 
 
 def get_artist_and_title(filepath):
@@ -27,33 +35,56 @@ def get_artist_and_title(filepath):
 
 
 def remove_metadata(audio):
-    if "audio/x-mp3" in audio.mime:
-        # some MP3's have APEv2 tags also
-        audio.tags = mutagen.apev2.APEv2()
-        audio.delete()
-        audio.tags = mutagen.easyid3.EasyID3()
-    elif "audio/x-flac" in audio.mime:
-        audio.clear_pictures()
-    audio.delete()
-    return audio
+    match audio:
+        case FLAC():
+            audio.clear()
+            # keep only STREAMINFO, remove all other metadata blocks
+            audio.metadata_blocks = [block for block in audio.metadata_blocks if isinstance(block, StreamInfo)]
+            # some FLACs have invalid ID3 tags included
+            audio.save(deleteid3=True)
+        case OggVorbis():
+            audio.clear()
+            audio.save()
+        case MP3():
+            # remove ID3v2
+            audio.clear()
+            audio.delete()
+            audio.tags = None
+            audio.save()
+            # remove ID3v1 and APEv2 by truncating the file
+            with open(audio.filename, "rb+") as f:
+                f.seek(0, os.SEEK_END)
+                size = f.tell()
+                # remove ID3v1
+                if size >= 128:
+                    f.seek(size - 128)
+                    if f.read(3) == b"TAG":
+                        f.truncate(size - 128)
+                        size -= 128
+                # remove APEv2
+                if size >= 32:
+                    f.seek(size - 32)
+                    if f.read(8) == b"APETAGEX":
+                        # APEv2 header stores tag size at offset 12 (4 bytes little-endian)
+                        # (tag header is at end of file)
+                        f.seek(size - 32 + 12)
+                        tag_size = int.from_bytes(f.read(4), "little")
+                        f.truncate(size - tag_size)
+    return mutagen.File(audio.filename)
 
 
 def set_tags(audio, artist, title):
-    audio["artist"] = artist
-    audio["title"] = title
-    return audio
-
-
-def save(audio):
-    if "audio/x-mp3" in audio.mime:
-        audio.save(v1=0, v2_version=3)
-    elif "audio/x-flac" in audio.mime:
-        audio.save(deleteid3=True)
-    elif "application/x-ogg" in audio.mime:
-        audio.save()
+    if isinstance(audio, MP3):
+        easy = EasyID3()
+        easy.filename = audio.filename
+        easy["artist"] = artist
+        easy["title"] = title
+        easy.save()
     else:
-        raise Exception("unrecognized media type")
-    return audio
+        audio["artist"] = artist
+        audio["title"] = title
+        audio.save()
+    return mutagen.File(audio.filename)
 
 
 def get_tags(filepath):
@@ -61,11 +92,11 @@ def get_tags(filepath):
     tags = {}
     try:
         audio = mutagen.File(filepath, easy=True)
-        if audio is None:
-            logger.error(f"{file_label}\n   {red_x()} Error:\n     unknown error\n")
+        if not is_supported_format(audio):
+            logger.error(f"{file_label}\n   {red_x()} Error:\n     unsupported media format\n")
             return None
         else:
-            if isinstance(audio.tags, mutagen.easyid3.EasyID3):
+            if isinstance(audio, EasyMP3):
                 id3_tags = {tag: value[0] for tag, value in audio.tags.items()} if audio.tags is not None else {}
                 # some MP3's have APEv2 tags also
                 ape = mutagen.apev2.APEv2File(filepath)
@@ -77,7 +108,9 @@ def get_tags(filepath):
                         )
                 tags = id3_tags | ape_tags
             else:
-                if audio.tags is not None:
+                if audio.tags is None:
+                    tags = {}
+                else:
                     tags = {tag: value for tag, value in audio.tags}
     except Exception as e:
         logger.error(f"{file_label}\n   {red_x()} Error:\n     {e}\n")
@@ -92,16 +125,13 @@ def retag(filepath, clean_only=False):
             artist, title = False, False
         else:
             artist, title = get_artist_and_title(filepath)
-        audio = mutagen.File(filepath, easy=True)
-        if audio is None:
-            logger.error(f"{file_label}\n   {red_x()} Error:\n     unknown error\n")
+        audio = mutagen.File(filepath)
+        if not is_supported_format(audio):
+            logger.error(f"{file_label}\n   {red_x()} Error:\n     unsupported media format\n")
             return None, None
         cleaned_audio = remove_metadata(audio)
-        if clean_only:
-            save(cleaned_audio)
-        else:
-            tagged_audio = set_tags(cleaned_audio, artist, title)
-            save(tagged_audio)
+        if not clean_only:
+            set_tags(cleaned_audio, artist, title)
     except Exception as e:
         logger.error(f"{file_label}\n   {red_x()} Error:\n     {e}\n")
         return None, None
@@ -113,7 +143,7 @@ def process_file(filepath, clean_only=False, show_only=False):
     if not filepath.exists():
         logger.error(f"{file_label}\n   {red_x()} Error:\n     can't find file\n")
         return False
-    if filepath.name.lower().endswith(FILE_EXTENSIONS):
+    if filepath.suffix.lower().lstrip(".") in FILE_EXTENSIONS:
         if show_only:
             tags = get_tags(filepath)
             if tags is None:
