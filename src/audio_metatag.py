@@ -26,7 +26,7 @@ def get_artist_and_title(filepath):
     return artist, title
 
 
-def clear_tags(audio):
+def remove_metadata(audio):
     if "audio/x-mp3" in audio.mime:
         # some MP3's have APEv2 tags also
         audio.tags = mutagen.apev2.APEv2()
@@ -96,7 +96,7 @@ def retag(filepath, clean_only=False):
         if audio is None:
             logger.error(f"{file_label}\n   {red_x()} Error:\n     unknown error\n")
             return None, None
-        cleaned_audio = clear_tags(audio)
+        cleaned_audio = remove_metadata(audio)
         if clean_only:
             save(cleaned_audio)
         else:

@@ -26,7 +26,7 @@ def copy_file(filename, path):
         pass
 
 
-def verify_tags_cleared(audio):
+def verify_metadata_removed(audio):
     assert len(audio.tags) == 0
     with pytest.raises(KeyError):
         audio["artist"]
@@ -67,12 +67,12 @@ def test_get_artist_and_title_from_filename_with_path(file_extension):
 
 
 @pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
-def test_clear_tags(file_extension, tmp_path):
+def test_remove_metadata(file_extension, tmp_path):
     filename = f"{VALID_FILE_STEM}.{file_extension}"
     copy_file(filename, tmp_path)
     audio = mutagen.File(tmp_path / filename, easy=True)
-    cleared_audio = audio_metatag.clear_tags(audio)
-    assert verify_tags_cleared(cleared_audio)
+    clean_audio = audio_metatag.remove_metadata(audio)
+    assert verify_metadata_removed(clean_audio)
 
 
 @pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
@@ -121,7 +121,7 @@ def test_retag_clean(file_extension, tmp_path):
     assert not artist
     assert not title
     audio = mutagen.File(filepath, easy=True)
-    assert verify_tags_cleared(audio)
+    assert verify_metadata_removed(audio)
 
 
 def test_retag_invalid_file(tmp_path):
@@ -162,7 +162,7 @@ def test_process_clean(file_extension, tmp_path, caplog):
         assert record.levelname == "INFO"
     assert f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     all tags cleaned\n" in caplog.text
     audio = mutagen.File(filepath, easy=True)
-    assert verify_tags_cleared(audio)
+    assert verify_metadata_removed(audio)
 
 
 @pytest.mark.parametrize("file_extension", FILE_EXTENSIONS)
@@ -233,7 +233,7 @@ def test_run_filenames_clean(tmp_path, caplog):
     for filepath in (tmp_path / filename for filename in filenames):
         assert f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     all tags cleaned\n" in caplog.text
         audio = mutagen.File(filepath, easy=True)
-        assert verify_tags_cleared(audio)
+        assert verify_metadata_removed(audio)
 
 
 def test_run_dir(tmp_path, caplog):
