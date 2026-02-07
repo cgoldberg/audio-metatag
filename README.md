@@ -15,21 +15,22 @@
 
 ## About:
 
-`audio_metatag` is a Python CLI program that cleans metadata and adds ARTIST/TITLE
-tags to MP3, FLAC, or Ogg vorbis audio files. It can be used on individual
-files or a library of files.
+`audio_metatag` is a Python CLI program for cleaning metadata and adding
+ARTIST/TITLE tags to MP3, FLAC, and Ogg Vorbis audio files. It can be used on
+individual files or a library of files.
 
-- In order to process a file, it **must** be named in a specific format:
+- In order to tag a file, it **must** be named in a specific format:
   - `Artist - Title.mp3`, `Artist - Title.flac`, `Artist - Title.ogg`
   - File names must contain a delimiter (` - `) between `Artist` and `Title`,
     and end with a valid extension: `.mp3`, `.flac`, `.ogg` (case-insensitive)
 - It will skip any files that are not named according to the format specified above
 
-**Warning**: Edits are done in-place. Backup your files first if you want a copy of the originals.
+**Warning**: Edits are done in-place. Backup your files first if you want a
+copy of the originals.
 
-- Existing metadata (tags) and pictures are deleted
+- Existing metadata is deleted
 - ARTIST and TITLE tag data is taken from the filename
-- Metadata tags are saved to the file (id3v2, flac, ogg)
+- New metadata is saved to the file
 
 ## Requirements:
 
@@ -87,6 +88,42 @@ audio_metatag
 ```
 audio_metatag --clean --dir=/path/to/files
 ```
+
+----
+
+## Metadata Details:
+
+### Metadata that is clean/removed:
+
+- FLAC
+  - VORBIS_COMMENT
+  - PICTURE
+  - SEEKTABLE
+  - CUESHEET
+  - APPLICATION
+  - PADDING
+  - ID3 (extraneous)
+
+- MP3
+  - ID3v1
+  - ID3v2
+  - APEv2
+
+- Ogg Vorbis
+  - Vorbis Comments
+
+### Metadata where new tags are written:
+
+- FLAC
+  - VORBIS_COMMENT
+
+- MP3
+  - ID3v2.4
+
+- Ogg Vorbis
+  - Vorbis Comments
+
+----
 
 [github-home]: https://github.com/cgoldberg
 [github-repo]: https://github.com/cgoldberg/audio-metatag
