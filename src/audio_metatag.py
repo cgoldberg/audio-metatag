@@ -21,9 +21,7 @@ FILE_EXTENSIONS = ("mp3", "flac", "ogg")
 
 
 def is_supported_format(audio):
-    if audio is not None and isinstance(audio, (EasyID3, FLAC, MP3, OggVorbis)):
-        return True
-    return False
+    return isinstance(audio, (EasyID3, FLAC, MP3, OggVorbis))
 
 
 def get_artist_and_title(filepath):
