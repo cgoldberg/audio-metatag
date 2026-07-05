@@ -41,8 +41,6 @@ dev = [
     "tox",
 ]
 lint = [
-    "black",
-    "refurb",
     "ruff",
 ]
 test = [
@@ -80,7 +78,3 @@ fixable = ["ALL"]
 [tool.ruff.format]
 docstring-code-format = true
 docstring-code-line-length = 120
-
-[tool.refurb]
-python_version = "3.12"
-enable_all = true
