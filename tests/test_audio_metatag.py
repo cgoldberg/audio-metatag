@@ -278,7 +278,7 @@ def test_run_dir(tmp_path, caplog):
             f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     artist: {artist}\n     title: {title}\n",
             f"\u27a4  File: {filepath}\n   \u2717 Error:\n",
         )
-        assert any([match in caplog.text for match in matches])
+        assert any(match in caplog.text for match in matches)
 
 
 def test_run_dir_clean(tmp_path, caplog):
@@ -298,4 +298,4 @@ def test_run_dir_clean(tmp_path, caplog):
             f"\u27a4  File: {filepath}\n   \u2794 Tags:\n     all tags cleaned\n",
             f"\u27a4  File: {filepath}\n   \u2717 Error:\n",
         )
-        assert any([match in caplog.text for match in matches])
+        assert any(match in caplog.text for match in matches)

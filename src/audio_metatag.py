@@ -50,7 +50,7 @@ def remove_metadata(audio):
             audio.tags = None
             audio.save()
             # remove ID3v1 and APEv2 by truncating the file
-            with open(audio.filename, "rb+") as f:
+            with Path(audio.filename).open("rb+") as f:
                 f.seek(0, os.SEEK_END)
                 size = f.tell()
                 # remove ID3v1
@@ -93,23 +93,19 @@ def get_tags(filepath):
         if not is_supported_format(audio):
             logger.error(f"{file_label}\n   {red_x()} Error:\n     unsupported media format\n")
             return None
+        if isinstance(audio, EasyMP3):
+            id3_tags = {tag: value[0] for tag, value in audio.tags.items()} if audio.tags is not None else {}
+            # some MP3's have APEv2 tags also
+            ape = mutagen.apev2.APEv2File(filepath)
+            ape_tags = {}
+            if ape.tags is not None:
+                for tag, value in ape.tags.items():
+                    ape_tags[f"ape_{tag.lower()}"] = (
+                        "<BINARY>" if isinstance(value, mutagen.apev2.APEBinaryValue) else value
+                    )
+            tags = id3_tags | ape_tags
         else:
-            if isinstance(audio, EasyMP3):
-                id3_tags = {tag: value[0] for tag, value in audio.tags.items()} if audio.tags is not None else {}
-                # some MP3's have APEv2 tags also
-                ape = mutagen.apev2.APEv2File(filepath)
-                ape_tags = {}
-                if ape.tags is not None:
-                    for tag, value in ape.tags.items():
-                        ape_tags[f"ape_{tag.lower()}"] = (
-                            "<BINARY>" if isinstance(value, mutagen.apev2.APEBinaryValue) else value
-                        )
-                tags = id3_tags | ape_tags
-            else:
-                if audio.tags is None:
-                    tags = {}
-                else:
-                    tags = {tag: value for tag, value in audio.tags}
+            tags = {} if audio.tags is None else {tag: value for tag, value in audio.tags}
     except Exception as e:
         logger.error(f"{file_label}\n   {red_x()} Error:\n     {e}\n")
         return None
@@ -146,25 +142,23 @@ def process_file(filepath, clean_only=False, show_only=False):
             tags = get_tags(filepath)
             if tags is None:
                 return False
-            else:
-                logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:")
-                for tag, value in tags.items():
-                    logger.info(f"     {tag}: {value}")
-                logger.info("")
-                return True
-        else:
-            artist, title = retag(filepath, clean_only)
-            if clean_only:
-                if artist is not None:
-                    if not artist:
-                        logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:\n     all tags cleaned\n")
-                        return True
-            else:
-                if artist is not None:
-                    logger.info(
-                        f"{file_label}\n   {light_blue_arrow()} Tags:\n     artist: {artist}\n     title: {title}\n"
-                    )
+            logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:")
+            for tag, value in tags.items():
+                logger.info(f"     {tag}: {value}")
+            logger.info("")
+            return True
+        artist, title = retag(filepath, clean_only)
+        if clean_only:
+            if artist is not None:
+                if not artist:
+                    logger.info(f"{file_label}\n   {light_blue_arrow()} Tags:\n     all tags cleaned\n")
                     return True
+        else:
+            if artist is not None:
+                logger.info(
+                    f"{file_label}\n   {light_blue_arrow()} Tags:\n     artist: {artist}\n     title: {title}\n"
+                )
+                return True
     return False
 
 
@@ -177,7 +171,7 @@ def run(path, filenames, clean_only=False, show_only=False):
             if process_file(filepath, clean_only, show_only):
                 processed_count += 1
     else:
-        for root, dirs, files in path.walk():
+        for root, _, files in path.walk():
             for f in sorted(files):
                 total_count += 1
                 filepath = Path(root / f).resolve()
@@ -190,8 +184,7 @@ def run(path, filenames, clean_only=False, show_only=False):
     else:
         action_msg = "Cleaned and tagged"
     label_msg = "file" if processed_count == 1 else "files"
-    status_msg = f"{action_msg} {processed_count} audio {label_msg}"
-    return status_msg
+    return f"{action_msg} {processed_count} audio {label_msg}"
 
 
 def colored_symbol(unicode_char, rgb):
