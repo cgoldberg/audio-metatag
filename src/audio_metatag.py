@@ -1,5 +1,6 @@
 # Copyright (c) 2015-2026 Corey Goldberg
-# MIT License
+# SPDX-License-Identifier: MIT
+
 
 import argparse
 import logging

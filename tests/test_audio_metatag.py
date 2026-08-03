@@ -1,3 +1,7 @@
+# Copyright (c) 2015-2026 Corey Goldberg
+# SPDX-License-Identifier: MIT
+
+
 import logging
 import re
 import shutil
