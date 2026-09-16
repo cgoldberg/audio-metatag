@@ -13,8 +13,8 @@ maintainers = [{name = "Corey Goldberg"}]
 readme = "README.md"
 requires-python = ">=3.12"
 keywords = [
-    "audio", "cleaner", "cli", "flac", "metadata", "mp3", "music",
-    "ogg-vorbis", "tags", "tagging"
+    "audio", "cleaner", "cli", "flac", "metadata", "mp3",
+    "music", "ogg-vorbis", "tags", "tagging"
 ]
 classifiers = [
     "Environment :: Console",
@@ -54,7 +54,8 @@ validate = [
 package-dir = {"" = "src"}
 
 [tool.pytest]
-addopts = ["-s", "-vv"]
+addopts = ["-v"]
+filterwarnings = ["default"]
 tmp_path_retention_policy = "none"
 
 [tool.black]
